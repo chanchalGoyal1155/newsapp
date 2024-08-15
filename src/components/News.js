@@ -2,89 +2,104 @@ import React, { Component } from "react";
 import NewsItem from "./NewsItem";
 
 export class News extends Component {
-  articles = [
-      {
-        "source": {
-          "id": "bbc-sport",
-          "name": "BBC Sport"
-        },
-        "author": null,
-        "title": "South Asian Heritage Month: From cricket to weightlifting, four athletes trailblazing in their sport",
-        "description": "To mark South Asian Heritage Month, BBC Sport takes a look at four athletes, in Britain and across the world, who are trailblazers their sport.",
-        "url": "http://www.bbc.co.uk/sport/articles/cvg44p2v4zvo",
-        "urlToImage": "https://ichef.bbci.co.uk/news/1024/branded_sport/dc86/live/0d98f940-58c7-11ef-b2d2-cdb23d5d7c5b.jpg",
-        "publishedAt": "2024-08-13T08:37:14.4619713Z",
-        "content": "Scotland's Abtaha Maqsood became the first British female cricket player to wear the hijab.\r\nBorn in Glasgow to Pakistani parents, the 25-year-old plays for Birmingham Phoenix, Sunrisers and Middlese… [+704 chars]"
-      },
-      {
-        "source": {
-          "id": "bbc-sport",
-          "name": "BBC Sport"
-        },
-        "author": null,
-        "title": "James Anderson: England great 'open' to continuing career in white ball cricket",
-        "description": "James Anderson says he is \"still fit enough\" to continue his career as he considers a move into white ball cricket.",
-        "url": "http://www.bbc.co.uk/sport/cricket/articles/cgrjnz8pgkvo",
-        "urlToImage": "https://ichef.bbci.co.uk/news/1024/branded_sport/27d8/live/96a5ec10-5940-11ef-94ec-63bde61d9499.jpg",
-        "publishedAt": "2024-08-13T07:52:17.99265Z",
-        "content": "\"I might be in a bit of denial because I'm well aware I won't play for England again, but I've still not made a decision on my actual cricket career,\" Anderson told the Press Association.\r\n\"There's d… [+729 chars]"
-      },
-      {
-        "source": {
-          "id": "espn-cric-info",
-          "name": "ESPN Cric Info"
-        },
-        "author": null,
-        "title": "PCB hands Umar Akmal three-year ban from all cricket | ESPNcricinfo.com",
-        "description": "Penalty after the batsman pleaded guilty to not reporting corrupt approaches | ESPNcricinfo.com",
-        "url": "http://www.espncricinfo.com/story/_/id/29103103/pcb-hands-umar-akmal-three-year-ban-all-cricket",
-        "urlToImage": "https://a4.espncdn.com/combiner/i?img=%2Fi%2Fcricket%2Fcricinfo%2F1099495_800x450.jpg",
-        "publishedAt": "2020-04-27T11:41:47Z",
-        "content": "Umar Akmal's troubled cricket career has hit its biggest roadblock yet, with the PCB handing him a ban from all representative cricket for three years after he pleaded guilty of failing to report det… [+1506 chars]"
-      },
-      {
-        "source": {
-          "id": "espn-cric-info",
-          "name": "ESPN Cric Info"
-        },
-        "author": null,
-        "title": "What we learned from watching the 1992 World Cup final in full again | ESPNcricinfo.com",
-        "description": "Wides, lbw calls, swing - plenty of things were different in white-ball cricket back then | ESPNcricinfo.com",
-        "url": "http://www.espncricinfo.com/story/_/id/28970907/learned-watching-1992-world-cup-final-full-again",
-        "urlToImage": "https://a4.espncdn.com/combiner/i?img=%2Fi%2Fcricket%2Fcricinfo%2F1219926_1296x729.jpg",
-        "publishedAt": "2020-03-30T15:26:05Z",
-        "content": "Last week, we at ESPNcricinfo did something we have been thinking of doing for eight years now: pretend-live ball-by-ball commentary for a classic cricket match. We knew the result, yes, but we tried… [+6823 chars]"
-      }
-    ]
-  
-  constructor(){
+  constructor() {
     super();
-    console.log("Hello I'm a constructor from news component")
-    this.state={
-      articles: this.articles,
+    console.log("Hello I'm a constructor from news component");
+    this.state = {
+      articles: [],
+      loading: false,
+      page: 1,
+      totalResults: 0
+    };
+  }
+
+  async componentDidMount() {
+    let url = `https://newsapi.org/v2/everything?q=apple&from=2024-08-14&to=2024-08-14&sortBy=popularity&apiKey=6e8807a21cd04a52bb7f3c6fdfa0eb34&page=1&pageSize=${this.props.pageSize}`;
+    this.setState({ loading: true }); // Start loading before fetch
+    let data = await fetch(url);
+    let parseData = await data.json();
+    console.log(parseData);
+    this.setState({
+      articles: parseData.articles || [], // Ensure articles is an array
+      totalResults: parseData.totalResults,
+      loading: false // Stop loading after fetch
+    });
+  }
+
+  handlePreviousClick = async () => {
+    console.log('prev');
+
+    let url = `https://newsapi.org/v2/everything?q=apple&from=2024-08-14&to=2024-08-14&sortBy=popularity&apiKey=6e8807a21cd04a52bb7f3c6fdfa0eb34&page=${this.state.page - 1}&pageSize=${this.props.pageSize}`;
+    this.setState({ loading: true });
+    let data = await fetch(url);
+    let parseData = await data.json();
+    console.log(parseData);
+    this.setState({
+      page: this.state.page - 1,
+      articles: parseData.articles || [],
       loading: false
+    });
+  }
 
-
+  handleNextClick = async () => {
+    console.log('nxt');
+    if (this.state.page + 1 > Math.ceil(this.state.totalResults / this.props.pageSize)) {
+      // Do nothing if next page exceeds total pages
+    } else {
+      let url = `https://newsapi.org/v2/everything?q=apple&from=2024-08-14&to=2024-08-14&sortBy=popularity&apiKey=6e8807a21cd04a52bb7f3c6fdfa0eb34&page=${this.state.page + 1}&pageSize=${this.props.pageSize}`;
+      this.setState({ loading: true });
+      let data = await fetch(url);
+      let parseData = await data.json();
+      console.log(parseData);
+      this.setState({
+        page: this.state.page + 1,
+        articles: parseData.articles || [],
+        loading: false
+      });
     }
   }
+
   render() {
     return (
       <div className="container">
-        <h1>NewsMonkey - Top Headlines</h1>
+        <h1 className="text-center">NewsMonkey - Top Headlines</h1>
+        
         <div className="row">
-
-          <div className="col-md-4">
-            <NewsItem title="myTitle" description="mydesc" imageUrl="https://ichef.bbci.co.uk/news/1024/branded_sport/dc86/live/0d98f940-58c7-11ef-b2d2-cdb23d5d7c5b.jpg" newsUrl="TODO" />
-          </div>
-
-          <div className="col-md-4">
-            <NewsItem title="myTitle" description="mydesc" />
-          </div>
-
-          <div className="col-md-4">
-            <NewsItem title="myTitle" description="mydesc" />
-          </div>
-          
+          {this.state.loading && <p>Loading...</p>} {/* Display loading message */}
+          {this.state.articles && this.state.articles.length > 0 ? (
+            this.state.articles.map((element) => {
+              return (
+                <div className="col-md-4" key={element.url}>
+                  <NewsItem 
+                    title={element.title ? element.title : ""} 
+                    description={element.description ? element.description : ""} 
+                    imageUrl={element.urlToImage} 
+                    newsUrl={element.url} 
+                  />
+                </div>
+              );
+            })
+          ) : (
+            !this.state.loading && <p>No news available.</p> // Display if no articles and not loading
+          )}
+        </div>
+        <div className="container d-flex justify-content-between mb-2">
+          <button 
+            disabled={this.state.page <= 1} 
+            type="button" 
+            className="btn btn-dark" 
+            onClick={this.handlePreviousClick}
+          >
+            &larr; Previous
+          </button>
+          <button 
+            disabled={(this.state.page + 1 > Math.ceil(this.state.totalResults / this.props.pageSize))}
+            type="button" 
+            className="btn btn-dark" 
+            onClick={this.handleNextClick}
+          >
+            Next &rarr;
+          </button>
         </div>
       </div>
     );
